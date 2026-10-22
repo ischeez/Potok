@@ -1,0 +1,30 @@
+{
+  "name": "potok",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": ["apps/*"],
+  "engines": { "node": ">=22.12.0" },
+  "scripts": {
+    "dev": "concurrently -k -n api,web -c cyan,magenta \"npm run dev -w @potok/api\" \"npm run dev -w @potok/web\"",
+    "build": "npm run build --workspaces",
+    "typecheck": "npm run typecheck --workspaces",
+    "lint": "eslint apps scripts tests",
+    "test": "npm run test --workspaces",
+    "test:e2e": "playwright test",
+    "test:integration": "node scripts/test-integration.mjs",
+    "screenshots": "node scripts/screenshots.mjs",
+    "db:up": "docker compose up -d db",
+    "db:migrate": "npm run db:migrate -w @potok/api",
+    "db:seed": "npm run db:seed -w @potok/api",
+    "check": "npm run lint && npm run typecheck && npm test && npm run build"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.0",
+    "@playwright/test": "^1.56.0",
+    "concurrently": "^9.2.1",
+    "eslint": "^9.39.0",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "globals": "^16.5.0",
+    "typescript-eslint": "^8.46.0"
+  }
+}

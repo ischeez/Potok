@@ -1,0 +1,19 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: potok
+      POSTGRES_PASSWORD: potok
+      POSTGRES_DB: potok
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - potok_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U potok -d potok"]
+      interval: 3s
+      timeout: 3s
+      retries: 15
+
+volumes:
+  potok_data:
