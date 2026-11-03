@@ -1,37 +1,18 @@
-# Опубликовать на GitHub
+# Обновление GitHub
 
-Проект — отдельный Git-репозиторий. Рабочая ветка: `feat/kanban-board`. Локальная база, `.env`, зависимости и результаты временных тестов в Git не попадают; исходники, миграции и изображения README входят в коммит.
+Репозиторий: [github.com/ischeez/Potok](https://github.com/ischeez/Potok)
 
-## Через GitHub CLI
+Рабочий сайт: [korotkov.click](https://korotkov.click)
 
-Выполните из папки проекта, если у вас установлен `gh` и выполнен `gh auth login`:
-
-```bash
-cd /Users/korotkov/Desktop/Trash/hm/potok
-gh repo create potok --public --source=. --remote=origin --push
-```
-
-Команда создаст публичный репозиторий в вашем аккаунте и отправит текущую ветку. Для закрытого репозитория замените `--public` на `--private`. При создании первым push текущая ветка станет основной на GitHub.
-
-## Обычным Git
-
-Создайте на GitHub пустой репозиторий `potok` без автоматически добавленных README и `.gitignore`, затем выполните:
+Основная рабочая ветка проекта — `feat/kanban-board`. Перед публикацией изменений:
 
 ```bash
 cd /Users/korotkov/Desktop/Trash/hm/potok
-git remote add origin https://github.com/YOUR_USERNAME/potok.git
-git push -u origin feat/kanban-board
-```
-
-Замените `YOUR_USERNAME` на логин. Настройка SSH тоже подходит: вместо HTTPS используйте `git@github.com:YOUR_USERNAME/potok.git`.
-
-## После новых изменений
-
-```bash
 npm run check
+git status
 git add .
 git commit -m "Describe the change"
-git push
+git push origin feat/kanban-board
 ```
 
-README использует относительные пути к изображениям. После push они отобразятся в репозитории автоматически.
+README использует относительные пути к изображениям, поэтому они отображаются на GitHub после push. Файлы `.env`, зависимости, локальные данные и результаты тестов исключены через `.gitignore`.

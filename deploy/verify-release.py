@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""Verify a fresh private release; credentials arrive on stdin, never in argv."""
-import base64
+"""Verify a fresh public release without login credentials."""
 import gzip
 import json
 from pathlib import Path
@@ -21,13 +20,11 @@ def command(arguments, data=None):
 
 
 def main():
-    supplied = json.loads(sys.stdin.readline())
     domain = sys.argv[1]
-    authorization = 'Basic ' + base64.b64encode((supplied['username'] + ':' + supplied['password']).encode()).decode()
     base = 'https://' + domain
 
-    def request(path, method='GET', body=None, authenticated=True):
-        headers = {'Authorization': authorization} if authenticated else {}
+    def request(path, method='GET', body=None):
+        headers = {'User-Agent': 'Potok-Release-Check/1.0'}
         if body is not None:
             headers['Content-Type'] = 'application/json'
         req = urllib.request.Request(base + path, data=json.dumps(body).encode() if body is not None else None, headers=headers, method=method)
@@ -50,8 +47,8 @@ def main():
 
     ready()
     assert request('/')[0] == 200
-    assert request('/api/tasks', authenticated=False)[0] == 401
-    assert request('/api/tasks', authenticated=False)[1].get('WWW-Authenticate')
+    assert request('/api/tasks')[0] == 200
+    assert not request('/')[1].get('WWW-Authenticate')
     status, headers, html = request('/')
     assert headers.get('X-Content-Type-Options') == 'nosniff'
     assert 'frame-ancestors' in headers.get('Content-Security-Policy', '')
@@ -61,7 +58,7 @@ def main():
         assert status == 200 and 'immutable' in headers.get('Cache-Control', '')
     assert request('/api/missing')[0] == 404
     assert json.loads(request('/api/tasks')[2]) == [], 'Run this verifier only on a fresh empty release'
-    print('PASS: HTTPS, private access, health, security headers, assets and empty board', flush=True)
+    print('PASS: HTTPS, public access, health, security headers, assets and empty board', flush=True)
 
     task_id = None
     restore_database = 'potok_restore_' + uuid.uuid4().hex[:10]

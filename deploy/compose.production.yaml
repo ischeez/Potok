@@ -102,8 +102,6 @@ services:
     restart: unless-stopped
     environment:
       DOMAIN: ${DOMAIN:?Set DOMAIN in deploy/.env}
-      POTOK_AUTH_USER: ${POTOK_AUTH_USER:-owner}
-      POTOK_AUTH_HASH: ${POTOK_AUTH_HASH:?Set a Caddy password hash in deploy/.env}
     depends_on:
       api:
         condition: service_healthy
