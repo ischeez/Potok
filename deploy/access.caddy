@@ -1,0 +1,6 @@
+# Owner-only board: frontend, assets and API share the same HTTPS login.
+# Hashes come from the server environment and must never be committed.
+basic_auth {
+    {$POTOK_AUTH_USER} {$POTOK_AUTH_HASH}
+}
+

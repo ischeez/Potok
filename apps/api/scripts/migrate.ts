@@ -1,8 +1,7 @@
 import { readdir, readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { Pool } from 'pg';
-import { loadEnvironment } from '../src/config/environment';
-import { DEFAULT_DATABASE_URL } from '../src/database/database.constants';
+import { getDatabaseUrl, loadEnvironment } from '../src/config/environment';
 
 const MIGRATION_LOCK_ID = 2_076_514_823;
 const migrationsDirectory = resolve(__dirname, '../migrations');
@@ -10,7 +9,7 @@ const migrationsDirectory = resolve(__dirname, '../migrations');
 async function migrate(): Promise<void> {
   loadEnvironment();
   const pool = new Pool({
-    connectionString: process.env.DATABASE_URL ?? DEFAULT_DATABASE_URL,
+    connectionString: getDatabaseUrl(),
     connectionTimeoutMillis: 5000,
   });
   const client = await pool.connect();

@@ -13,13 +13,13 @@ import App from './App';
 import './styles.css';
 
 const theme = createTheme({
-  palette: { primary: { main: '#294f3b' }, background: { default: '#f6f7f9' }, text: { primary: '#202a25', secondary: '#7b837f' } },
+  palette: { primary: { main: '#264d3e' }, background: { default: '#f7f6f2', paper: '#fffefa' }, text: { primary: '#243c31', secondary: '#6e7a6e' }, divider: '#e4e6dd' },
   typography: { fontFamily: 'Manrope, sans-serif', button: { textTransform: 'none', fontWeight: 700 } },
   shape: { borderRadius: 12 },
   components: {
-    MuiButton: { defaultProps: { disableElevation: true }, styleOverrides: { root: { minHeight: 42, paddingInline: 18, borderRadius: 10 } } },
+    MuiButton: { defaultProps: { disableElevation: true }, styleOverrides: { root: { minHeight: 44, paddingInline: 20, borderRadius: 12, fontSize: 13 } } },
     MuiIconButton: { styleOverrides: { root: { borderRadius: 10 } } },
-    MuiDialog: { styleOverrides: { paper: { borderRadius: 22 } } },
+    MuiDialog: { styleOverrides: { paper: { borderRadius: 24, boxShadow: '0 24px 100px #193a3126', backgroundImage: 'none' } } },
     MuiTextField: { defaultProps: { variant: 'outlined', fullWidth: true } },
   },
 });

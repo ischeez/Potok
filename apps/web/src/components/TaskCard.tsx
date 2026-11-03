@@ -15,7 +15,7 @@ export default function TaskCard({ task, busy, onOpen, onMove, onDelete, onDrag 
   onDelete: () => void; onDrag: (id: string | null) => void;
 }) {
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
-  return <article className={`task-card ${busy ? 'task-busy' : ''} ${task.status === 'done' ? 'task-done' : ''}`}
+  return <article className={`task-card card-priority-${task.priority} ${busy ? 'task-busy' : ''} ${task.status === 'done' ? 'task-done' : ''}`}
     data-testid="task-card" draggable={!busy} aria-busy={busy}
     onDragStart={event => { event.dataTransfer.setData('text/plain', task.id); event.dataTransfer.effectAllowed = 'move'; onDrag(task.id); }}
     onDragEnd={() => onDrag(null)}>
@@ -28,12 +28,15 @@ export default function TaskCard({ task, busy, onOpen, onMove, onDelete, onDrag 
       </Tooltip>
     </div>
     <button className="card-content" onClick={onOpen} disabled={busy}>
-      <h3>{task.title}</h3>
-      <p>{task.description || 'Добавьте детали — к задаче будет проще вернуться.'}</p>
+      <div className="card-title">
+        <h3>{task.title}</h3>
+        {task.status === 'done' && <span className="completion-mark" aria-hidden="true"><CheckRounded /></span>}
+      </div>
+      <p className={!task.description ? 'description-placeholder' : undefined}>{task.description || 'Добавьте детали — к задаче будет проще вернуться.'}</p>
     </button>
     <div className="card-bottom">
       <span className="task-reference">PTK-{task.id.slice(0, 4).toUpperCase()}</span>
-      <span className="card-date">{task.status === 'done' && <CheckRounded />} {dateFormat.format(new Date(task.createdAt))}</span>
+      <span className="card-date">{dateFormat.format(new Date(task.createdAt))}</span>
       <DragIndicatorRounded className="drag-handle" />
     </div>
     <Menu anchorEl={anchor} open={Boolean(anchor)} onClose={() => setAnchor(null)}>

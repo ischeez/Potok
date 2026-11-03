@@ -1,6 +1,5 @@
 import { Pool } from 'pg';
-import { loadEnvironment } from '../src/config/environment';
-import { DEFAULT_DATABASE_URL } from '../src/database/database.constants';
+import { getDatabaseUrl, loadEnvironment } from '../src/config/environment';
 
 const tasks = [
   ['Собрать визуальные референсы', 'Подобрать фактуры, типографику и примеры спокойной цветовой системы.', 'medium', 'done'],
@@ -16,8 +15,11 @@ const tasks = [
 
 async function seed(): Promise<void> {
   loadEnvironment();
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('Demonstration seeding is disabled in production');
+  }
   const pool = new Pool({
-    connectionString: process.env.DATABASE_URL ?? DEFAULT_DATABASE_URL,
+    connectionString: getDatabaseUrl(),
     connectionTimeoutMillis: 5000,
   });
 

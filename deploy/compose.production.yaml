@@ -1,0 +1,133 @@
+name: potok-production
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: "3"
+
+x-api-environment: &api-environment
+  NODE_ENV: production
+  PORT: "3001"
+  FRONTEND_ORIGIN: https://${DOMAIN:?Set DOMAIN in deploy/.env}
+  DATABASE_URL: postgres://${POSTGRES_USER:-potok}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in deploy/.env}@db:5432/${POSTGRES_DB:-potok}
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-potok}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in deploy/.env}
+      POSTGRES_DB: ${POSTGRES_DB:-potok}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    mem_limit: 512m
+    shm_size: 128m
+    logging: *default-logging
+
+  migrate:
+    image: potok-api:${RELEASE_TAG:-release-candidate}
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.api
+      target: runtime
+    command: ["node", "apps/api/dist/scripts/migrate.js"]
+    user: node
+    environment: *api-environment
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - backend
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 256m
+    logging: *default-logging
+    restart: "no"
+
+  api:
+    image: potok-api:${RELEASE_TAG:-release-candidate}
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.api
+      target: runtime
+    restart: unless-stopped
+    init: true
+    user: node
+    environment: *api-environment
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    expose:
+      - "3001"
+    networks:
+      - backend
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 128
+    mem_limit: 384m
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3001/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    logging: *default-logging
+
+  web:
+    image: potok-web:${RELEASE_TAG:-release-candidate}
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.web
+    restart: unless-stopped
+    environment:
+      DOMAIN: ${DOMAIN:?Set DOMAIN in deploy/.env}
+      POTOK_AUTH_USER: ${POTOK_AUTH_USER:-owner}
+      POTOK_AUTH_HASH: ${POTOK_AUTH_HASH:?Set a Caddy password hash in deploy/.env}
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./access.caddy:/etc/caddy/access.caddy:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - edge
+      - backend
+    mem_limit: 192m
+    logging: *default-logging
+
+networks:
+  edge:
+  backend:
+    internal: true
+
+volumes:
+  postgres_data:
+  caddy_data:
+  caddy_config:
+

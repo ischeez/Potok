@@ -1,6 +1,7 @@
-import { Global, Inject, Injectable, Module, OnApplicationShutdown } from '@nestjs/common';
+import { Global, Inject, Injectable, Logger, Module, OnApplicationShutdown } from '@nestjs/common';
 import { Pool } from 'pg';
-import { DATABASE_POOL, DEFAULT_DATABASE_URL } from './database.constants';
+import { DATABASE_POOL } from './database.constants';
+import { getDatabaseUrl } from '../config/environment';
 
 @Injectable()
 class DatabaseLifecycle implements OnApplicationShutdown {
@@ -16,13 +17,16 @@ class DatabaseLifecycle implements OnApplicationShutdown {
   providers: [
     {
       provide: DATABASE_POOL,
-      useFactory: (): Pool =>
-        new Pool({
-          connectionString: process.env.DATABASE_URL ?? DEFAULT_DATABASE_URL,
-          max: 10,
+      useFactory: (): Pool => {
+        const pool = new Pool({
+          connectionString: getDatabaseUrl(),
+          max: 5,
           connectionTimeoutMillis: 5_000,
           idleTimeoutMillis: 30_000,
-        }),
+        });
+        pool.on('error', () => new Logger('Database').warn('An idle database connection was closed; the pool will reconnect'));
+        return pool;
+      },
     },
     DatabaseLifecycle,
   ],

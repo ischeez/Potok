@@ -1,0 +1,10 @@
+[Unit]
+Description=Daily Potok database backup
+
+[Timer]
+OnCalendar=*-*-* 02:17:00 UTC
+Persistent=true
+RandomizedDelaySec=5m
+
+[Install]
+WantedBy=timers.target

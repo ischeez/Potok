@@ -25,6 +25,7 @@ import { completion, filterTasks, priorityLabels, statuses, statusLabels } from 
 import type { Priority, Status, Task, TaskInput } from './domain';
 
 import Logo from './components/Logo';
+import FlowIllustration from './components/FlowIllustration';
 import TaskCard from './components/TaskCard';
 import TaskDialog from './components/TaskDialog';
 import type { DialogState } from './components/TaskDialog';
@@ -83,6 +84,7 @@ export default function App() {
   let visibleTasks = filterTasks(tasks, query, priority);
   if (sort === 'priority') { const rank = { high: 0, medium: 1, low: 2 }; visibleTasks = [...visibleTasks].sort((a, b) => rank[a.priority] - rank[b.priority]); }
   const done = tasks.filter(task => task.status === 'done').length;
+  const inProgress = tasks.filter(task => task.status === 'in_progress').length;
   const progress = completion(tasks);
   const filtered = Boolean(query.trim() || priority !== 'all');
   const create = (status: Status = 'new') => setDialog({ task: null, status, mode: 'edit' });
@@ -152,8 +154,13 @@ export default function App() {
         </div>
         <div className="topbar-right">
           <span className="today-date">{longDate.format(new Date())}</span>
-          <span className="personal-badge">
-            <span />Личная доска</span>
+          <div className="company-signature" aria-label="Тестовое задание для The Digital">
+            <span className="company-monogram" aria-hidden="true">✳</span>
+            <div>
+              <span>Тестовое задание для</span>
+              <strong>The Digital<span className="company-dot" aria-hidden="true">.</span></strong>
+            </div>
+          </div>
         </div>
       </header>
       <main id="board" className="main-content">
@@ -161,31 +168,29 @@ export default function App() {
           <div>
             <div className="eyebrow">
               <span /> МЕНЬШЕ ШУМА, БОЛЬШЕ ДЕЛА</div>
-            <h1>Рабочие будни<span className="heading-dot">.</span>
+            <h1>Рабочие <span className="heading-accent">будни<svg viewBox="0 0 180 12" preserveAspectRatio="none" aria-hidden="true"><path d="M4 8C48 2 116 2 176 6" /></svg></span><span className="heading-dot">.</span>
             </h1>
             <p>Важные дела — перед глазами. Следующий шаг — понятен.</p>
           </div>
+          <FlowIllustration />
           <Button className="create-button" variant="contained" startIcon={<AddRounded />} onClick={() => create()}>Новая задача<span className="key-hint">N</span>
           </Button>
         </section>
         <section className="overview" aria-label="Прогресс доски">
-          <div className="overview-icon">
-            <CheckRounded />
+          <div className="progress-orbit" role="progressbar" aria-label="Завершённые задачи" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}
+            style={{ background: `conic-gradient(var(--forest) ${progress}%, var(--ring-track) 0)` }}>
+            <span>{progress}<small>%</small></span>
           </div>
           <div className="overview-copy">
-            <strong>{tasks.length && progress === 100 ? 'Всё готово. Можно выдохнуть.' : 'Каждая готовая задача — шаг вперёд'}</strong>
+            <span className="overview-eyebrow">ВАШ ПРОГРЕСС</span>
+            <strong>{tasks.length && progress === 100 ? 'Всё готово. Можно выдохнуть.' : 'Маленькие шаги. Большие планы.'}</strong>
             <span>{tasks.length ? `${done} из ${tasks.length} завершено. Вы движетесь в своём темпе.` : 'Добавьте первое дело — и движение начнётся.'}</span>
           </div>
-          <div className="progress-area">
-            <div>
-              <span>Ваш прогресс</span>
-              <strong>{progress}%</strong>
-            </div>
-            <div className="progress-track" role="progressbar" aria-label="Завершённые задачи" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
-              <span style={{ width: `${progress}%` }} />
-            </div>
+          <div className="overview-stats" aria-label="Задачи по статусам">
+            <div><span><i className="stat-dot dot-new" />Новые</span><strong>{tasks.length - inProgress - done}<small>к старту</small></strong></div>
+            <div><span><i className="stat-dot dot-in_progress" />В работе</span><strong>{inProgress}<small>в процессе</small></strong></div>
+            <div><span><i className="stat-dot dot-done" />Готово</span><strong>{done}<small>завершено</small></strong></div>
           </div>
-          <span className="overview-spark" aria-hidden="true">✳</span>
         </section>
         <section className="board-section" aria-label="Канбан-доска" aria-busy={loading}>
           <div className="board-toolbar">

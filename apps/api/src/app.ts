@@ -2,17 +2,21 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
-import { loadEnvironment } from './config/environment';
+import { getDatabaseUrl, getFrontendOrigin, getPort, loadEnvironment } from './config/environment';
 
 export async function createApp(): Promise<NestExpressApplication> {
   loadEnvironment();
+  getDatabaseUrl();
+  getPort();
+  const frontendOrigin = getFrontendOrigin();
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: ['error', 'warn', 'log'],
   });
 
   app.setGlobalPrefix('api');
+  app.disable('x-powered-by');
   app.enableCors({
-    origin: process.env.FRONTEND_ORIGIN ?? 'http://localhost:5173',
+    origin: frontendOrigin,
     methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
   });
   app.useGlobalPipes(
